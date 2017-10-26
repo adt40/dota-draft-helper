@@ -1,0 +1,61 @@
+
+
+
+Scrape heros from recent games
+For the winning team:
+	For each hero on that team:
+		Increase same team weights to other heroes on that team
+		Increase other team weights to heroes on the other team
+For the losing team:
+	For each hero on that team:
+		Decrease same team weights to other heroes on that team
+		Decrease other team weights to heroes on the other team
+
+weights should change by the function 1/(1 + e^-x)
+
+Classes and some basic outward facing functions
+
+WebScraper
+getHeroes()
+getAvailableMatches()
+
+HeroLookup
+populate(String[] heroNames)
+getNameByID(int)
+getIDByName(String)
+
+Match
+variables:
+	long ID
+	int winner (0 or 1)
+	int radiantTeam[5]
+	int direTeam[5]
+
+gets for each of these
+set all using the constructor
+
+Graph
+save()
+load()
+updateWeights(Match)
+
+
+
+
+
+
+
+Runner pseudocode for training
+
+WebScraper ws;
+HeroLookup hl;
+Graph g;
+
+hl.populate(ws.getHeroes())
+
+Match matches[] = ws.getAvailableMatches()
+
+for each match in matches:
+	g.updateWeights(match)
+
+g.save()
