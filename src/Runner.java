@@ -8,6 +8,7 @@ public class Runner {
 		Match[] matches = webScraper.getAvailableMatches();
 		
 		Graph graph = new Graph();
+		System.out.println("Found " + matches.length + " matches");
 		for (int i = 0; i < matches.length; i++) {
 			graph.updateWeights(matches[i]);
 		}

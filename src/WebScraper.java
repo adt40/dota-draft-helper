@@ -1,3 +1,9 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -44,30 +50,33 @@ public class WebScraper {
 				Element matchElement = matchesElement.child(i);
 				String IDChunk = matchElement.child(0).html();
 				long ID = Long.parseLong(getValueFromChunk(IDChunk));
-				
-				String winnerChunk = matchElement.child(2).html();
-				String winnerString = getValueFromChunk(winnerChunk);
-				Team winner = Team.RADIANT;
-				if (winnerString.equals("Radiant Victory")) {
-					winner = Team.RADIANT;
-				} else {
-					winner = Team.DIRE;
+
+				if (!isRecentMatch(ID)) {
+					String winnerChunk = matchElement.child(2).html();
+					String winnerString = getValueFromChunk(winnerChunk);
+					Team winner = Team.RADIANT;
+					if (winnerString.equals("Radiant Victory")) {
+						winner = Team.RADIANT;
+					} else {
+						winner = Team.DIRE;
+					}
+					
+					Element radiantTeamElement = matchElement.child(4);
+					int[] radiantTeam = new int[5];
+					for (int k = 0; k < 5; k++) {
+						String radiantHeroChunk = radiantTeamElement.child(k).html();
+						radiantTeam[k] = HeroLookup.getIDBySystemName(radiantHeroChunk.substring(radiantHeroChunk.indexOf("/heroes/") + 8, radiantHeroChunk.indexOf("\">")));
+					}
+					
+					Element direTeamElement = matchElement.child(5);
+					int[] direTeam = new int[5];
+					for (int k = 0; k < 5; k++) {
+						String direHeroChunk = direTeamElement.child(k).html();
+						direTeam[k] = HeroLookup.getIDBySystemName(direHeroChunk.substring(direHeroChunk.indexOf("/heroes/") + 8, direHeroChunk.indexOf("\">")));
+					}
+					
+					matches.add(new Match(ID, winner, radiantTeam, direTeam));
 				}
-				
-				Element radiantTeamElement = matchElement.child(4);
-				int[] radiantTeam = new int[5];
-				for (int k = 0; k < 5; k++) {
-					String radiantHeroChunk = radiantTeamElement.child(k).html();
-					radiantTeam[k] = HeroLookup.getIDBySystemName(radiantHeroChunk.substring(radiantHeroChunk.indexOf("/heroes/") + 8, radiantHeroChunk.indexOf("\">")));
-				}
-				
-				Element direTeamElement = matchElement.child(5);
-				int[] direTeam = new int[5];
-				for (int k = 0; k < 5; k++) {
-					String direHeroChunk = direTeamElement.child(k).html();
-					direTeam[k] = HeroLookup.getIDBySystemName(direHeroChunk.substring(direHeroChunk.indexOf("/heroes/") + 8, direHeroChunk.indexOf("\">")));
-				}
-				matches.add(new Match(ID, winner, radiantTeam, direTeam));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -78,12 +87,71 @@ public class WebScraper {
 		for (int i = 0; i < matchArr.length; i++) {
 			matchArr[i] = (Match)objArr[i];
 		}
-		
+		saveRecentMatches(matchArr);
 		return matchArr;
 	}
 	
 	private String getValueFromChunk(String chunk) {
 		return chunk.substring(chunk.indexOf("\">") + 2, chunk.indexOf("</a>"));
+	}
+	
+	
+	private long[] loadRecentMatches() {
+		ArrayList<Long> ids = new ArrayList<Long>();
+		try {
+			File recentMatchesFile = new File("recent_matches.dat");
+			if (!recentMatchesFile.exists()) {
+				recentMatchesFile.createNewFile();
+			}
+			
+			FileReader fr = new FileReader("recent_matches.dat");
+			BufferedReader br = new BufferedReader(fr);
+			
+			String line = "";
+			while((line = br.readLine()) != null) {
+				ids.add(Long.parseLong(line));
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		Object[] objArr = ids.toArray();
+		long[] idArr = new long[objArr.length];
+		for (int i = 0; i < idArr.length; i++) {
+			idArr[i] = (long)objArr[i];
+		}
+		return idArr;
+	}
+	
+	private void saveRecentMatches(Match[] matches) {
+		FileWriter fw;
+		try {
+			File recentMatchesFile = new File("recent_matches.dat");
+			recentMatchesFile.createNewFile();
+			fw = new FileWriter("recent_matches.dat", true);
+			BufferedWriter bw = new BufferedWriter(fw);
+			for (int i = 0; i < matches.length; i++) {
+				bw.append(matches[i].getID() + "\n");
+			}
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private boolean isRecentMatch(long ID) {
+		boolean found = false;
+		long[] recentMatches = loadRecentMatches();
+		for (int k = 0; k < recentMatches.length; k++) {
+			if (recentMatches[k] == ID) {
+				found = true;
+				break;
+			}
+		}
+		return found;
 	}
 }
 
