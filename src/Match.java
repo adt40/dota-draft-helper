@@ -1,12 +1,13 @@
+import java.util.Arrays;
 
 public class Match {
 	
 	private long ID;
-	private int winner;
+	private Team winner;
 	private int[] radiantTeam;
 	private int[] direTeam;
 	
-	public Match(long ID, int winner, int[] radiantTeam, int[] direTeam) {
+	public Match(long ID, Team winner, int[] radiantTeam, int[] direTeam) {
 		this.ID = ID;
 		this.winner = winner;
 		this.radiantTeam = radiantTeam;
@@ -17,7 +18,7 @@ public class Match {
 		return ID;
 	}
 
-	public int getWinner() {
+	public Team getWinner() {
 		return winner;
 	}
 
@@ -27,6 +28,12 @@ public class Match {
 
 	public int[] getDireTeam() {
 		return direTeam;
+	}
+
+	@Override
+	public String toString() {
+		return "Match [ID=" + ID + ", winner=" + winner + ", radiantTeam=" + Arrays.toString(radiantTeam)
+				+ ", direTeam=" + Arrays.toString(direTeam) + "]";
 	}
 	
 	

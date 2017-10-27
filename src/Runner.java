@@ -8,13 +8,16 @@ public class Runner {
 		HeroLookup.populate(webScraper.getHeroes());
 		
 		Match[] matches = webScraper.getAvailableMatches();
-		/*
+		for (int i = 0; i < matches.length; i++) {
+			System.out.println(matches[i].toString());
+		}
+		
 		for (int i = 0; i < matches.length; i++) {
 			graph.updateWeights(matches[i]);
 		}
 		
 		graph.save();
-		*/
+		
 	}
 
 }

@@ -7,6 +7,8 @@ public class HeroLookup {
 	private static HashMap<String, Integer> commonToID = new HashMap<String, Integer>();
 	private static HashMap<String, Integer> systemToID = new HashMap<String, Integer>();
 	
+	public static int NumberOfHeroes;
+	
 	public static void populate(String[][] names) {
 		commonNames = names[0];
 		systemNames = names[1];
@@ -14,6 +16,7 @@ public class HeroLookup {
 			commonToID.put(commonNames[i], i);
 			systemToID.put(systemNames[i], i);
 		}
+		NumberOfHeroes = commonNames.length;
 	}
 	
 	public static String getCommonNameByID(int ID) {
@@ -37,6 +40,7 @@ public class HeroLookup {
 	}
 	
 	public static int getIDBySystemName(String systemName) {
+
 		return systemToID.get(systemName);
 	}
 	
