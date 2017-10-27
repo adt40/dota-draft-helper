@@ -1,12 +1,19 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Graph {
 
-	double[][][] weights;
-	
+	private double[][][] weights;
 	
 	public Graph() {
-		boolean b = false;
-		if (b) { //file exists
+		weights = new double[HeroLookup.NumberOfHeroes][HeroLookup.NumberOfHeroes][3];
+		File weightsFile = new File("weights.dat");
+		if (weightsFile.exists()) {
 			load();
 		} else {
 			for (int i = 0; i < HeroLookup.NumberOfHeroes; i++) {
@@ -16,15 +23,60 @@ public class Graph {
 					weights[i][j][2] = 0;	//losses
 				}
 			}
+			
 		}
 	}
 	
 	public void load() {
-		
+		try {
+			FileReader fr = new FileReader("weights.dat");
+			BufferedReader br = new BufferedReader(fr);
+			
+			String line = "";
+			int i = 0;
+			int j = 0;
+			while((line = br.readLine()) != null) {
+				String[] splitLine = line.split(" ");
+				for (int k = 0; k < 3; k++) {
+					weights[i][j][k] = Double.parseDouble(splitLine[k]);
+				}
+				j++;
+				if (j % HeroLookup.NumberOfHeroes == 0) {
+					j = 0;
+					i++;
+				}
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void save() {
-		
+		FileWriter fw;
+		try {
+			File weightsFile = new File("weights.dat");
+			if (!weightsFile.exists()) {
+				weightsFile.createNewFile();
+			}
+			
+			fw = new FileWriter("weights.dat");
+			BufferedWriter bw = new BufferedWriter(fw);
+			for (int i = 0; i < weights.length; i++) {
+				for (int j = 0; j < weights[i].length; j++) {
+					String line = "";
+					for (int k = 0; k < 3; k++) {
+						line += weights[i][j][k] + " ";
+					}
+					bw.write(line + "\n");
+				}
+			}
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void updateWeights(Match match) {
@@ -44,12 +96,16 @@ public class Graph {
 				weights[wh][lh][1]++;
 				weights[lh][wh][2]++;
 				
-				int wins = (int)weights[wh][lh][1];
-				int losses = (int)weights[lh][wh][2];
-				double newWeight = sigmoid(wins, losses);
+				int winnerWins = (int)weights[wh][lh][1];
+				int winnerLosses = (int)weights[wh][lh][2];
+				double winnerNewWeight = sigmoid(winnerWins, winnerLosses);
 				
-				weights[wh][lh][0] = newWeight;
-				weights[lh][wh][0] = newWeight;
+				int loserWins = (int)weights[lh][wh][1];
+				int loserLosses = (int)weights[lh][wh][2];
+				double loserNewWeight = sigmoid(loserWins, loserLosses);
+				
+				weights[wh][lh][0] = winnerNewWeight;
+				weights[lh][wh][0] = loserNewWeight;
 			}
 		}
 	}
