@@ -147,7 +147,7 @@ public class Graph {
 				
 				int loserWins = (int)weights[lhi][lhk][4];
 				int loserLosses = (int)weights[lhi][lhk][5];
-				double loserNewWeight = sigmoid(winnerWins, winnerLosses);
+				double loserNewWeight = sigmoid(loserWins, loserLosses);
 				
 				weights[lhi][lhk][3] = loserNewWeight;
 			}
