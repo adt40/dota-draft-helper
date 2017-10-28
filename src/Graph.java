@@ -11,19 +11,32 @@ public class Graph {
 	private double[][][] weights;
 	
 	public Graph() {
-		weights = new double[HeroLookup.NumberOfHeroes][HeroLookup.NumberOfHeroes][3];
+		weights = new double[HeroLookup.NumberOfHeroes][HeroLookup.NumberOfHeroes][6];
 		File weightsFile = new File("weights.dat");
 		if (weightsFile.exists()) {
 			load();
 		} else {
 			for (int i = 0; i < HeroLookup.NumberOfHeroes; i++) {
 				for (int j = 0; j < HeroLookup.NumberOfHeroes; j++) {
-					weights[i][j][0] = 0.5; //weight
-					weights[i][j][1] = 0;	//wins
-					weights[i][j][2] = 0;	//losses
+					if (i != j) {
+						weights[i][j][0] = 0.5; //weight against
+						weights[i][j][1] = 0;	//wins against
+						weights[i][j][2] = 0;	//losses against
+						weights[i][j][3] = 0.5; //weight with
+						weights[i][j][4] = 0; 	//wins with
+						weights[i][j][5] = 0;	//losses with
+					} else {
+						//This can't happen since each hero is only picked once. Set weights to zero so it is never an option
+						weights[i][j][0] = 0;
+						weights[i][j][1] = 0;
+						weights[i][j][2] = 0;
+						weights[i][j][3] = 0;
+						weights[i][j][4] = 0;
+						weights[i][j][5] = 0;
+					}
+					
 				}
 			}
-			
 		}
 	}
 	
@@ -37,7 +50,7 @@ public class Graph {
 			int j = 0;
 			while((line = br.readLine()) != null) {
 				String[] splitLine = line.split(" ");
-				for (int k = 0; k < 3; k++) {
+				for (int k = 0; k < 6; k++) {
 					weights[i][j][k] = Double.parseDouble(splitLine[k]);
 				}
 				j++;
@@ -67,7 +80,7 @@ public class Graph {
 			for (int i = 0; i < weights.length; i++) {
 				for (int j = 0; j < weights[i].length; j++) {
 					String line = "";
-					for (int k = 0; k < 3; k++) {
+					for (int k = 0; k < 6; k++) {
 						line += weights[i][j][k] + " ";
 					}
 					bw.write(line + "\n");
@@ -89,6 +102,7 @@ public class Graph {
 			winningTeam = match.getDireTeam();
 			losingTeam = match.getRadiantTeam();
 		}
+		//weights for "against" heroes (opposing teams)
 		for (int i = 0; i < 5; i++) {
 			for (int k = 0; k < 5; k++) {
 				int wh = winningTeam[i];
@@ -106,6 +120,36 @@ public class Graph {
 				
 				weights[wh][lh][0] = winnerNewWeight;
 				weights[lh][wh][0] = loserNewWeight;
+			}
+		}
+		
+		//weights for "with" heroes (same team)
+		for (int i = 0; i < 5; i++) {
+			for (int k = 0; k < 5; k++) {
+				if (i == k) {
+					continue;
+				}
+				//winners
+				int whi = winningTeam[i];
+				int whk = winningTeam[k];
+				weights[whi][whk][4]++;
+				
+				int winnerWins = (int)weights[whi][whk][4];
+				int winnerLosses = (int)weights[whi][whk][5];
+				double winnerNewWeight = sigmoid(winnerWins, winnerLosses);
+				
+				weights[whi][whk][3] = winnerNewWeight;
+				
+				//losers
+				int lhi = losingTeam[i];
+				int lhk = losingTeam[k];
+				weights[lhi][lhk][5]++;
+				
+				int loserWins = (int)weights[lhi][lhk][4];
+				int loserLosses = (int)weights[lhi][lhk][5];
+				double loserNewWeight = sigmoid(winnerWins, winnerLosses);
+				
+				weights[lhi][lhk][3] = loserNewWeight;
 			}
 		}
 	}
