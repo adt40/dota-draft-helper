@@ -9,6 +9,7 @@ import java.io.IOException;
 public class Graph {
 
 	private double[][][] weights;
+	private double domain;
 	
 	public Graph() {
 		weights = new double[HeroLookup.NumberOfHeroes][HeroLookup.NumberOfHeroes][6];
@@ -16,6 +17,7 @@ public class Graph {
 		if (weightsFile.exists()) {
 			load();
 		} else {
+			domain = 1;
 			for (int i = 0; i < HeroLookup.NumberOfHeroes; i++) {
 				for (int j = 0; j < HeroLookup.NumberOfHeroes; j++) {
 					if (i != j) {
@@ -38,6 +40,7 @@ public class Graph {
 				}
 			}
 		}
+		Logger.Log(domain + "");
 	}
 	
 	public void load() {
@@ -46,12 +49,19 @@ public class Graph {
 			BufferedReader br = new BufferedReader(fr);
 			
 			String line = "";
+			int maxDifference = 0;
 			int i = 0;
 			int j = 0;
 			while((line = br.readLine()) != null) {
 				String[] splitLine = line.split(" ");
 				for (int k = 0; k < 6; k++) {
 					weights[i][j][k] = Double.parseDouble(splitLine[k]);
+					if (k == 2 || k == 5) {
+						int difference = Math.abs((int)(weights[i][j][k] - weights[i][j][k - 1]));
+						if (difference > maxDifference) {
+							maxDifference = difference;
+						}
+					}
 				}
 				j++;
 				if (j % HeroLookup.NumberOfHeroes == 0) {
@@ -59,11 +69,18 @@ public class Graph {
 					i++;
 				}
 			}
+			if (maxDifference == 0) {
+				domain = 1;
+			} else {
+				domain = maxDifference;
+			}
 			br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			Logger.Log(e.getMessage());
 		} catch (IOException e) {
 			e.printStackTrace();
+			Logger.Log(e.getMessage());
 		}
 	}
 	
@@ -89,6 +106,7 @@ public class Graph {
 			bw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+			Logger.Log(e.getMessage());
 		}
 	}
 	
@@ -155,6 +173,6 @@ public class Graph {
 	}
 	
 	private double sigmoid(int wins, int losses) {
-		return 1 / (1 + Math.pow(Math.E, -(wins - losses)));
+		return 1 / (1 + Math.pow(Math.E, -(wins - losses) / domain));
 	}
 }

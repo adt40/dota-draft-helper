@@ -1,9 +1,3 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -35,6 +29,7 @@ public class WebScraper {
 			return names;		
 		} catch (IOException e) {
 			e.printStackTrace();
+			Logger.Log(e.getMessage());
 		}
 		return null;
 	}
@@ -46,11 +41,11 @@ public class WebScraper {
 		try {
 			for (int j = 0; j < HeroLookup.NumberOfHeroes; j++) {
 				String heroName = HeroLookup.getSystemNameByID(j);
-				System.out.print(heroName + ": ");
+				//System.out.print(heroName + ": ");
 				allMatchesDoc = Jsoup.connect("https://www.dotabuff.com/matches?hero=" + heroName + "&game_mode=all_pick&lobby_type=ranked_matchmaking&skill_bracket=high_skill").get();
 				Element matchesElement = allMatchesDoc.body().child(0).child(7).child(2).child(0).child(2).child(1);
 				int numberOfMatches = matchesElement.childNodeSize();
-				System.out.println(numberOfMatches);
+				//System.out.println(numberOfMatches);
 				for (int i = 0; i < numberOfMatches; i++) {
 					Element matchElement = matchesElement.child(i);
 					String IDChunk = matchElement.child(0).html();
@@ -87,6 +82,7 @@ public class WebScraper {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			Logger.Log(e.getMessage());
 		}
 		
 		Object[] objArr = matches.toArray();
