@@ -1,3 +1,4 @@
+package training;
 import java.util.HashMap;
 
 public class HeroLookup {

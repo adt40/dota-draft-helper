@@ -59,3 +59,17 @@ for each match in matches:
 	g.updateWeights(match)
 
 g.save()
+
+
+
+
+
+Data Analysis
+
+Classes and functions
+
+Analyzer
+getSingleStat(int h1, int h2, int stat)
+
+private functions to:
+load weights from file

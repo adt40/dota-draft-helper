@@ -1,9 +1,10 @@
+package training;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class BackendRunner {
+public class TrainingRunner {
 
 	public static void main(String[] args) {
 		
@@ -20,8 +21,9 @@ public class BackendRunner {
 		Logger.Log("Found " + matches.length + " new matches");
 		Logger.Log("Updating " + (matches.length * 65) + " weights");
 		for (int i = 0; i < matches.length; i++) {
-			graph.updateWeights(matches[i]);
+			graph.updateWinsLosses(matches[i]);
 		}
+		graph.updateWeights();
 		
 		graph.save();
 		

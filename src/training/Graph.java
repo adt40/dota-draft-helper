@@ -1,3 +1,4 @@
+package training;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,7 +10,6 @@ import java.io.IOException;
 public class Graph {
 
 	private double[][][] weights;
-	private double domain;
 	
 	public Graph() {
 		weights = new double[HeroLookup.NumberOfHeroes][HeroLookup.NumberOfHeroes][6];
@@ -17,7 +17,6 @@ public class Graph {
 		if (weightsFile.exists()) {
 			load();
 		} else {
-			domain = 1;
 			for (int i = 0; i < HeroLookup.NumberOfHeroes; i++) {
 				for (int j = 0; j < HeroLookup.NumberOfHeroes; j++) {
 					if (i != j) {
@@ -40,7 +39,6 @@ public class Graph {
 				}
 			}
 		}
-		Logger.Log(domain + "");
 	}
 	
 	public void load() {
@@ -49,30 +47,18 @@ public class Graph {
 			BufferedReader br = new BufferedReader(fr);
 			
 			String line = "";
-			int maxDifference = 0;
 			int i = 0;
 			int j = 0;
 			while((line = br.readLine()) != null) {
 				String[] splitLine = line.split(" ");
 				for (int k = 0; k < 6; k++) {
 					weights[i][j][k] = Double.parseDouble(splitLine[k]);
-					if (k == 2 || k == 5) {
-						int difference = Math.abs((int)(weights[i][j][k] - weights[i][j][k - 1]));
-						if (difference > maxDifference) {
-							maxDifference = difference;
-						}
-					}
 				}
 				j++;
 				if (j % HeroLookup.NumberOfHeroes == 0) {
 					j = 0;
 					i++;
 				}
-			}
-			if (maxDifference == 0) {
-				domain = 1;
-			} else {
-				domain = maxDifference;
 			}
 			br.close();
 		} catch (FileNotFoundException e) {
@@ -110,7 +96,7 @@ public class Graph {
 		}
 	}
 	
-	public void updateWeights(Match match) {
+	public void updateWinsLosses(Match match) {
 		int[] winningTeam;
 		int[] losingTeam;
 		if (match.getWinner() == Team.RADIANT) {
@@ -120,28 +106,17 @@ public class Graph {
 			winningTeam = match.getDireTeam();
 			losingTeam = match.getRadiantTeam();
 		}
-		//weights for "against" heroes (opposing teams)
+		//wins and losses for "against" heroes (opposing teams)
 		for (int i = 0; i < 5; i++) {
 			for (int k = 0; k < 5; k++) {
 				int wh = winningTeam[i];
 				int lh = losingTeam[k];
 				weights[wh][lh][1]++;
 				weights[lh][wh][2]++;
-				
-				int winnerWins = (int)weights[wh][lh][1];
-				int winnerLosses = (int)weights[wh][lh][2];
-				double winnerNewWeight = sigmoid(winnerWins, winnerLosses);
-				
-				int loserWins = (int)weights[lh][wh][1];
-				int loserLosses = (int)weights[lh][wh][2];
-				double loserNewWeight = sigmoid(loserWins, loserLosses);
-				
-				weights[wh][lh][0] = winnerNewWeight;
-				weights[lh][wh][0] = loserNewWeight;
 			}
 		}
 		
-		//weights for "with" heroes (same team)
+		//wins and losses for "with" heroes (same team)
 		for (int i = 0; i < 5; i++) {
 			for (int k = 0; k < 5; k++) {
 				if (i == k) {
@@ -152,27 +127,35 @@ public class Graph {
 				int whk = winningTeam[k];
 				weights[whi][whk][4]++;
 				
-				int winnerWins = (int)weights[whi][whk][4];
-				int winnerLosses = (int)weights[whi][whk][5];
-				double winnerNewWeight = sigmoid(winnerWins, winnerLosses);
-				
-				weights[whi][whk][3] = winnerNewWeight;
-				
 				//losers
 				int lhi = losingTeam[i];
 				int lhk = losingTeam[k];
 				weights[lhi][lhk][5]++;
-				
-				int loserWins = (int)weights[lhi][lhk][4];
-				int loserLosses = (int)weights[lhi][lhk][5];
-				double loserNewWeight = sigmoid(loserWins, loserLosses);
-				
-				weights[lhi][lhk][3] = loserNewWeight;
 			}
 		}
 	}
 	
-	private double sigmoid(int wins, int losses) {
-		return 1 / (1 + Math.pow(Math.E, -(wins - losses) / domain));
+	public void updateWeights() {
+		//This can be split into a per match basis like it initially was, but I'm lazy right now
+		for (int i = 0; i < HeroLookup.NumberOfHeroes; i++) {
+			for (int k = 0; k < HeroLookup.NumberOfHeroes; k++) {
+				
+				double againstWins = 	weights[i][k][1];
+				double againstLosses = weights[i][k][2];
+				double withWins = 		weights[i][k][4];
+				double withLosses = 	weights[i][k][5];
+				
+				weights[i][k][0] = weightFunction(againstWins, againstLosses);
+				weights[i][k][3] = weightFunction(withWins, withLosses);
+			}
+		}
+	}
+	
+	private double weightFunction(double wins, double losses) {
+		if (wins + losses == 0) {
+			return 0.0;
+		} else {
+			return wins / (wins + losses);
+		}
 	}
 }
